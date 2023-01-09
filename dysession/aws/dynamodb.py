@@ -1,4 +1,6 @@
 import boto3
+
+from dysession.aws.error import DynamodbTableNotFound
 from ..settings import get_config
 from typing import Any, Dict, Optional, Union
 
@@ -31,4 +33,20 @@ def destory_dynamodb_table(options: Dict[str, Union[str, int]], client=None) -> 
         client = boto3.client("dynamodb")
 
     response = client.delete_table(TableName=options["table"])
+    return response
+
+
+
+def check_dynamodb_table_exists(table_name: Optional[str] = None, client=None) -> Dict:
+    
+    if client is None:
+        client = boto3.client("dynamodb")
+
+    if table_name is None:
+        table_name = get_config()["DYNAMODB_TABLENAME"]
+
+    response = client.list_tables()
+    if table_name not in response["TableNames"]:
+        raise DynamodbTableNotFound
+
     return response

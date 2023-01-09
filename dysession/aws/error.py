@@ -1,0 +1,3 @@
+
+class DynamodbTableNotFound(Exception):
+    pass
