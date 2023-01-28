@@ -2,7 +2,7 @@ import boto3
 from django.test import TestCase
 from moto import mock_dynamodb
 
-from dysession.aws.dynamodb import create_dynamodb_table, destory_dynamodb_table, check_dynamodb_table_exists
+from dysession.aws.dynamodb import create_dynamodb_table, destory_dynamodb_table, check_dynamodb_table_exists, key_exists
 from dysession.aws.error import DynamodbTableNotFound
 
 
@@ -177,6 +177,52 @@ class AWSDynamoDBTestCase(TestCase):
             },
             client=client,
         )
-
         
         check_dynamodb_table_exists(table_name=options["table"], client=client)    
+
+    @mock_dynamodb
+    def test_check_if_key_not_exist(self):
+
+        options = {
+            "pk": "abc",
+            "sk": "def",
+            "table": "sessions",
+        }
+
+        client = boto3.client("dynamodb")
+        key_exists(
+
+            table_name=options["table"],
+            client=client,
+        )
+
+    @mock_dynamodb
+    def test_check_if_key_exist(self):
+
+        options = {
+            "pk": "abc",
+            "sk": "def",
+            "table": "sessions",
+        }
+
+        client = boto3.client("dynamodb")
+        key_exists(
+            session_key="",
+            table_name=options["table"],
+            client=client,
+        )
+
+    @mock_dynamodb
+    def test_check_key_wrong_type(self):
+
+        options = {
+            "table": "sessions",
+        }
+
+        client = boto3.client("dynamodb")
+        with self.assertRaises(AssertionError):
+            key_exists(
+                session_key=123,
+                table_name=options["table"],
+                client=client,
+            )

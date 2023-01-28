@@ -1,9 +1,6 @@
 {
     "python.formatting.provider": "black",
     "[python]": {
-        "gitlens.codeLens.symbolScopes": [
-            "!Module"
-        ],
         "editor.wordBasedSuggestions": true,
         "editor.formatOnSave": true,
         "editor.codeActionsOnSave": {

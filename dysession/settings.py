@@ -25,8 +25,8 @@ def get_config() -> Dict[str, Union[str, int]]:
 
 @receiver(setting_changed)
 def update_dysession_config(*, setting, **kwargs):
-    if setting == "DYSESSION_CONFIG":
-        get_config.cache_clear()
+    if setting == "DYSESSION_CONFIG":  # pragma: no cover
+        get_config.cache_clear()  # pragma: no cover
 
 
 __all__ = ["get_config"]

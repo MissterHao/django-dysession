@@ -15,5 +15,5 @@ class DysessionInitTestCase(TestCase):
             ("DYNAMODB_REGION",),
         ]
     )
-    def test_get_config_must_return_value_settings(self, config_key_name):
+    def test_get_config_must_return_value_settings(self, config_key_name: str):
         self.assertTrue(config_key_name in get_config().keys())
