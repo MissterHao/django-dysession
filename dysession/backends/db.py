@@ -60,12 +60,8 @@ class SessionStore(SessionBase):
             return True
 
     def clear(self):
-        # To avoid unnecessary persistent storage accesses, we set up the
-        # internals directly (loading data wastes time, since we are going to
-        # set it to an empty dict anyway).
+        super().clear()
         self._session_cache = SessionDataModel()
-        self.accessed = True
-        self.modified = True
 
     # ====== Methods that subclass must implement
     def exists(self, session_key: str) -> bool:
