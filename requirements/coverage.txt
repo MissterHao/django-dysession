@@ -1,2 +1,2 @@
 coverage==7.0.3
--r requirements/test.txt
+-r test.txt

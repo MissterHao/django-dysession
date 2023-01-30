@@ -6,4 +6,4 @@ omit =
 # Regexes for lines to exclude from consideration
 exclude_lines =
     pragma: no cover
-    NotImplementedError 
+    NotImplementedError

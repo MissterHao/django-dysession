@@ -13,18 +13,17 @@ from ..settings import get_config
 def create_dynamodb_table(options: Dict[str, Union[str, int]], client=None) -> Dict:
 
     if client is None:
-        client = boto3.client("dynamodb")
+        client = boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
 
     response = client.create_table(
         AttributeDefinitions=[
-            # {"AttributeName": options["ttl"], "AttributeType": "N"},
             {"AttributeName": options["pk"], "AttributeType": "S"},
-            {"AttributeName": options["sk"], "AttributeType": "S"},
+            # {"AttributeName": options["sk"], "AttributeType": "S"},
         ],
         TableName=options["table"],
         KeySchema=[
             {"AttributeName": options["pk"], "KeyType": "HASH"},
-            {"AttributeName": options["sk"], "KeyType": "RANGE"},
+            # {"AttributeName": options["sk"], "KeyType": "RANGE"},
         ],
         BillingMode="PAY_PER_REQUEST",
         TableClass="STANDARD",
@@ -36,7 +35,7 @@ def create_dynamodb_table(options: Dict[str, Union[str, int]], client=None) -> D
 def destory_dynamodb_table(options: Dict[str, Union[str, int]], client=None) -> Dict:
 
     if client is None:
-        client = boto3.client("dynamodb")
+        client = boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
 
     response = client.delete_table(TableName=options["table"])
     return response
@@ -45,7 +44,7 @@ def destory_dynamodb_table(options: Dict[str, Union[str, int]], client=None) -> 
 def check_dynamodb_table_exists(table_name: Optional[str] = None, client=None) -> Dict:
 
     if client is None:
-        client = boto3.client("dynamodb")
+        client = boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
 
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
@@ -60,7 +59,7 @@ def check_dynamodb_table_exists(table_name: Optional[str] = None, client=None) -
 def key_exists(session_key: str, table_name: Optional[str] = None, client=None) -> bool:
 
     if client is None:
-        client = boto3.client("dynamodb")
+        client = boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
 
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
@@ -70,7 +69,7 @@ def key_exists(session_key: str, table_name: Optional[str] = None, client=None) 
     pk = get_config()["PARTITION_KEY_NAME"]
 
     response = client.get_item(
-        TableName=get_config()["DYNAMODB_REGION"],
+        TableName=table_name,
         Key={
             pk: {"S": session_key},
         },
@@ -86,7 +85,7 @@ def key_exists(session_key: str, table_name: Optional[str] = None, client=None) 
 def get_item(session_key: str, table_name: Optional[str] = None, client=None) -> bool:
 
     if client is None:
-        client = boto3.client("dynamodb")
+        client = boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
 
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
@@ -102,7 +101,7 @@ def insert_session_item(
     """Insert a session key"""
 
     if client is None:
-        client = boto3.client("dynamodb")
+        client = boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
 
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
