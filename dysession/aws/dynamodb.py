@@ -138,17 +138,20 @@ def insert_session_item(
 
 class DynamoDB:
     def __init__(self, client) -> None:
-        pass
+        self.client = client
 
     def get(
         self, session_key: Optional[str] = None, ttl: Optional[datetime] = None
     ) -> Dict[str, Any]:
         """Return session data if dynamodb partision key is matched with inputed session_key"""
-        return
+        if session_key is None:
+            raise ValueError("session_key should be str type")
+
+
         # if not found then raise
-        raise SessionKeyDoesNotExist
+        # raise SessionKeyDoesNotExist
         # if key is expired
-        raise SessionExpired
+        # raise SessionExpired
 
     def set(self, session_key: Optional[str] = None, session_data=None) -> None:
         return
