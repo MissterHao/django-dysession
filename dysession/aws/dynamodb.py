@@ -1,13 +1,16 @@
 from datetime import datetime
-from typing import Any, Dict, Literal, Optional, Union
+from typing import Any, Callable, Dict, Literal, Optional, Union
 
 import boto3
 from botocore import client as botoClitent
 from django.utils import timezone
 
 from dysession.aws.error import DynamodbItemNotFound, DynamodbTableNotFound
-from dysession.backends.error import (SessionKeyDoesNotExist,
-                                      SessionKeyDuplicated)
+from dysession.backends.error import (
+    SessionExpired,
+    SessionKeyDoesNotExist,
+    SessionKeyDuplicated,
+)
 from dysession.backends.model import SessionDataModel
 
 from ..settings import get_config
@@ -82,10 +85,7 @@ def key_exists(session_key: str, table_name: Optional[str] = None, client=None) 
     return "Item" in response
 
 
-def get_item(session_key: str, table_name: Optional[str] = None, client=None) -> bool:
-
-    if client is None:
-        client = boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
+def get_item(session_key: str, table_name: Optional[str] = None) -> SessionDataModel:
 
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
@@ -94,17 +94,22 @@ def get_item(session_key: str, table_name: Optional[str] = None, client=None) ->
 
     pk = get_config()["PARTITION_KEY_NAME"]
 
-    response = client.get_item(
-        TableName=table_name,
+    resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
+    table = resource.Table(table_name)
+
+    response = table.get_item(
         Key={
-            pk: {"S": session_key},
+            pk: session_key,
         },
     )
 
     if "Item" not in response:
         raise DynamodbItemNotFound()
 
-    return response
+    model = SessionDataModel(session_key=session_key)
+    for k, v in response["Item"].items():
+        model[k] = v
+    return model
 
 
 def insert_session_item(
@@ -137,21 +142,38 @@ def insert_session_item(
 
 
 class DynamoDB:
-    def __init__(self, client) -> None:
+    def __init__(self, client=None) -> None:
         self.client = client
 
     def get(
-        self, session_key: Optional[str] = None, ttl: Optional[datetime] = None
+        self,
+        session_key: Optional[str] = None,
+        table_name: Optional[str] = None,
+        expired_time_fn: Callable[[], datetime] = datetime.now,
     ) -> Dict[str, Any]:
         """Return session data if dynamodb partision key is matched with inputed session_key"""
         if session_key is None:
             raise ValueError("session_key should be str type")
 
+        if table_name is None:
+            table_name = get_config()["DYNAMODB_TABLENAME"]
 
+        now = expired_time_fn()
+
+        try:
+            model = get_item(session_key=session_key, table_name=table_name)
+            if get_config()["TTL_ATTRIBUTE_NAME"] in model:
+                time = model[get_config()["TTL_ATTRIBUTE_NAME"]]
+                if time < int(now.timestamp()):
+                    raise SessionExpired
         # if not found then raise
-        # raise SessionKeyDoesNotExist
+        except DynamodbItemNotFound:
+            raise SessionKeyDoesNotExist
         # if key is expired
-        # raise SessionExpired
+        except SessionExpired:
+            raise SessionExpired
+
+        return model
 
     def set(self, session_key: Optional[str] = None, session_data=None) -> None:
         return

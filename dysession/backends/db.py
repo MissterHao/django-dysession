@@ -26,7 +26,7 @@ class SessionStore(SessionBase):
 
     def _get_session_from_ddb(self) -> SessionDataModel:
         try:
-            return self.db.get(session_key=self.session_key, ttl=timezone.now())
+            return self.db.get(session_key=self.session_key)
         except (SessionKeyDoesNotExist, SessionExpired, SuspiciousOperation) as e:
             if isinstance(e, SuspiciousOperation):
                 logger = logging.getLogger(f"django.security.{e.__class__.__name__}")
