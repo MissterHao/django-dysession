@@ -2,7 +2,11 @@ from typing import Any, Optional
 
 
 class SessionDataModel:
-    def __init__(self, session_key: Optional[str]) -> None:
+    def __init__(self, session_key: Optional[str] = None) -> None:
+
+        if type(session_key) is not str and session_key is not None:
+            raise TypeError("session_key should be type str or None")
+
         self.session_key = session_key
         self.__variables_names = set()
 
@@ -17,7 +21,7 @@ class SessionDataModel:
         self.__variables_names.add(key)
 
     def __delitem__(self, key):
-        del self.__variables_names[key]
+        self.__variables_names.remove(key)
         delattr(self, key)
 
     def __iter__(self):
@@ -35,7 +39,8 @@ class SessionDataModel:
             if default is Ellipsis:
                 raise
             return default
-    def pop(self, key, default):
+
+    def pop(self, key, default=...):
         try:
             ret = self[key]
             del self[key]

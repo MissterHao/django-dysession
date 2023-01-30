@@ -7,10 +7,12 @@ from dysession.aws.dynamodb import (
     check_dynamodb_table_exists,
     create_dynamodb_table,
     destory_dynamodb_table,
+    get_item,
     insert_session_item,
     key_exists,
 )
-from dysession.aws.error import DynamodbTableNotFound
+from dysession.aws.error import DynamodbItemNotFound, DynamodbTableNotFound
+from dysession.backends.model import SessionDataModel
 from dysession.settings import get_config
 
 
@@ -193,6 +195,7 @@ class AWSDynamoDBTestCase(TestCase):
 
         check_dynamodb_table_exists(table_name=options["table"], client=client)
 
+    # key exist
     @mock_dynamodb
     def test_check_if_key_not_exist(self):
 
@@ -251,6 +254,59 @@ class AWSDynamoDBTestCase(TestCase):
         )
 
     @mock_dynamodb
+    def test_check_if_key_exist_with_not_passing_tablename(self):
+
+        options = {
+            "pk": get_config()["PARTITION_KEY_NAME"],
+            "sk": get_config()["SORT_KEY_NAME"],
+            "table": "sessions",
+            "region": "ap-northeast-1",
+        }
+
+        client = boto3.client("dynamodb", region_name=options["region"])
+        try:
+            check_dynamodb_table_exists(table_name=options["table"], client=client)
+        except DynamodbTableNotFound:
+            create_dynamodb_table(
+                options={
+                    "pk": options["pk"],
+                    "sk": options["sk"],
+                    "table": options["table"],
+                },
+                client=client,
+            )
+
+        key_exists(
+            session_key="oijhugvfc",
+            client=client,
+        )
+
+    @mock_dynamodb
+    def test_check_if_key_exist_with_not_client(self):
+
+        options = {
+            "pk": get_config()["PARTITION_KEY_NAME"],
+            "sk": get_config()["SORT_KEY_NAME"],
+            "table": "sessions",
+            "region": "ap-northeast-1",
+        }
+
+        client = boto3.client("dynamodb", region_name=options["region"])
+        try:
+            check_dynamodb_table_exists(table_name=options["table"], client=client)
+        except DynamodbTableNotFound:
+            create_dynamodb_table(
+                options={
+                    "pk": options["pk"],
+                    "sk": options["sk"],
+                    "table": options["table"],
+                },
+                client=client,
+            )
+
+        key_exists(session_key="oijhugvfc")
+
+    @mock_dynamodb
     def test_check_key_wrong_type(self):
 
         options = {
@@ -281,15 +337,40 @@ class AWSDynamoDBTestCase(TestCase):
             )
 
     # Get Item
-    @parameterized.expand(
-        [
-            ["aaaaaaaaa"],
-            ["bbbbbbbbb"],
-            ["ccccccccc"],
-        ]
-    )
     @mock_dynamodb
-    def test_insert_item(self, session_key: str):
+    def test_get_item_without_client(self):
+
+        options = {
+            "pk": get_config()["PARTITION_KEY_NAME"],
+            "sk": get_config()["SORT_KEY_NAME"],
+            "table": "sessions",
+            "region": "ap-northeast-1",
+        }
+
+        try:
+            check_dynamodb_table_exists(table_name=options["table"])
+        except DynamodbTableNotFound:
+            create_dynamodb_table(
+                options={
+                    "pk": options["pk"],
+                    "sk": options["sk"],
+                    "table": options["table"],
+                },
+            )
+
+        session_key = "aaaaaaaaaa"
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model["b"] = "qwerty"
+
+        resp = insert_session_item(data=model)
+        self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)
+
+        resp = get_item(session_key=session_key, table_name=options["table"])
+        self.assertIn("Item", resp)
+
+    @mock_dynamodb
+    def test_get_item_using_not_exist_key(self):
 
         options = {
             "pk": get_config()["PARTITION_KEY_NAME"],
@@ -311,8 +392,98 @@ class AWSDynamoDBTestCase(TestCase):
                 client=client,
             )
 
-        insert_session_item(
-            session_key=session_key,
-            table_name=options["table"],
-            client=client,
+        with self.assertRaises(DynamodbItemNotFound):
+            resp = get_item(
+                session_key="not_exist_key", table_name=options["table"], client=client
+            )
+
+    # Insert Item
+    @parameterized.expand(
+        [
+            ["aaaaaaaaa"],
+            ["bbbbbbbbb"],
+            ["ccccccccc"],
+        ]
+    )
+    @mock_dynamodb
+    def test_insert_item_with_tablename(self, session_key: str):
+
+        options = {
+            "pk": get_config()["PARTITION_KEY_NAME"],
+            "sk": get_config()["SORT_KEY_NAME"],
+            "table": "sessions",
+            "region": "ap-northeast-1",
+        }
+
+        client = boto3.client("dynamodb", region_name=options["region"])
+        try:
+            check_dynamodb_table_exists(table_name=options["table"], client=client)
+        except DynamodbTableNotFound:
+            create_dynamodb_table(
+                options={
+                    "pk": options["pk"],
+                    "sk": options["sk"],
+                    "table": options["table"],
+                },
+                client=client,
+            )
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model["b"] = 2
+        model["c"] = 3
+        model["d"] = 4
+        model["e"] = "qwerty"
+
+        insert_session_item(data=model, table_name=options["table"])
+
+        resp = insert_session_item(data=model)
+        self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)
+
+        resp = get_item(
+            session_key=session_key, table_name=options["table"], client=client
         )
+        self.assertIn("Item", resp)
+
+    @parameterized.expand(
+        [
+            ["aaaaaaaaa"],
+            ["bbbbbbbbb"],
+            ["ccccccccc"],
+        ]
+    )
+    @mock_dynamodb
+    def test_insert_item_without_tablename(self, session_key: str):
+
+        options = {
+            "pk": get_config()["PARTITION_KEY_NAME"],
+            "sk": get_config()["SORT_KEY_NAME"],
+            "table": "sessions",
+            "region": "ap-northeast-1",
+        }
+
+        client = boto3.client("dynamodb", region_name=options["region"])
+        try:
+            check_dynamodb_table_exists(table_name=options["table"], client=client)
+        except DynamodbTableNotFound:
+            create_dynamodb_table(
+                options={
+                    "pk": options["pk"],
+                    "sk": options["sk"],
+                    "table": options["table"],
+                },
+                client=client,
+            )
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model["b"] = 2
+        model["c"] = 3
+        model["d"] = 4
+        model["e"] = "qwerty"
+
+        resp = insert_session_item(data=model)
+        self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)
+
+        resp = get_item(session_key=session_key, client=client)
+        self.assertIn("Item", resp)

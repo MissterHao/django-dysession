@@ -1,11 +1,14 @@
 from datetime import datetime
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Literal, Optional, Union
 
 import boto3
+from botocore import client as botoClitent
 from django.utils import timezone
 
-from dysession.aws.error import DynamodbTableNotFound
-from dysession.backends.error import SessionKeyDoesNotExist, SessionKeyDuplicated
+from dysession.aws.error import DynamodbItemNotFound, DynamodbTableNotFound
+from dysession.backends.error import (SessionKeyDoesNotExist,
+                                      SessionKeyDuplicated)
+from dysession.backends.model import SessionDataModel
 
 from ..settings import get_config
 
@@ -76,10 +79,7 @@ def key_exists(session_key: str, table_name: Optional[str] = None, client=None) 
         ProjectionExpression=f"{pk}",
     )
 
-    if "Item" in response:
-        return True
-
-    return False
+    return "Item" in response
 
 
 def get_item(session_key: str, table_name: Optional[str] = None, client=None) -> bool:
@@ -94,20 +94,46 @@ def get_item(session_key: str, table_name: Optional[str] = None, client=None) ->
 
     pk = get_config()["PARTITION_KEY_NAME"]
 
+    response = client.get_item(
+        TableName=table_name,
+        Key={
+            pk: {"S": session_key},
+        },
+    )
+
+    if "Item" not in response:
+        raise DynamodbItemNotFound()
+
+    return response
+
 
 def insert_session_item(
-    session_key: str, table_name: Optional[str] = None, client=None
+    data: SessionDataModel,
+    table_name: Optional[str] = None,
+    return_consumed_capacity: Literal["INDEXES", "TOTAL", "NONE"] = "TOTAL",
 ) -> bool:
     """Insert a session key"""
 
-    if client is None:
-        client = boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
+    assert type(data.session_key) is str, "session_key should be string type"
 
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
 
-    assert type(session_key) is str, "session_key should be string type"
+    resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
+    table = resource.Table(table_name)
     pk = get_config()["PARTITION_KEY_NAME"]
+
+    insert_item = {pk: data.session_key}
+    for key in data:
+        insert_item[key] = data[key]
+
+    response = table.put_item(
+        TableName=table_name,
+        Item=insert_item,
+        ReturnConsumedCapacity=return_consumed_capacity,
+    )
+
+    return response
 
 
 class DynamoDB:
