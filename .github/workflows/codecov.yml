@@ -1,0 +1,25 @@
+name: CodeCov
+on: [push, pull_request]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    env:
+      OS: ubuntu-latest
+      PYTHON: '3.9'
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.8
+
+    - name: Generate Report
+      run: |
+        curl -Os https://uploader.codecov.io/latest/linux/codecov
+        chmod +x codecov
+        pip install coverage pytest
+        pip install -r requirements/coverage.txt
+        coverage run runtests.py
+        coverage report
+        ./codecov
