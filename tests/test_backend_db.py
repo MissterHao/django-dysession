@@ -1,5 +1,7 @@
-from datetime import datetime
 import time
+from datetime import datetime
+from typing import Any
+
 import boto3
 from django.test import TestCase
 from moto import mock_dynamodb
@@ -15,7 +17,11 @@ from dysession.aws.dynamodb import (
     key_exists,
 )
 from dysession.aws.error import DynamodbItemNotFound, DynamodbTableNotFound
-from dysession.backends.error import SessionExpired, SessionKeyDoesNotExist
+from dysession.backends.error import (
+    SessionExpired,
+    SessionKeyDoesNotExist,
+    SessionKeyDuplicated,
+)
 from dysession.backends.model import SessionDataModel
 from dysession.settings import get_config
 
@@ -47,8 +53,8 @@ class DynamoDBTestCase(TestCase):
 
     @parameterized.expand(
         [
-            ["aaaaaaaaa"],
-            ["bbbbbbbbb"],
+            ["aaaaaaa"],
+            ["bbbbbbb"],
         ]
     )
     @mock_dynamodb
@@ -62,7 +68,6 @@ class DynamoDBTestCase(TestCase):
         model["d"] = [7, 8, 9]
         model["e"] = "qwerty"
 
-        insert_session_item(data=model, table_name=self.options["table"])
         resp = insert_session_item(data=model)
         self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)
 
@@ -98,7 +103,7 @@ class DynamoDBTestCase(TestCase):
     @mock_dynamodb
     def test_get_expired_datamodel_from_dynamodb_controller(self):
 
-        session_key = "aaaaaaaaaa"
+        session_key = "test_get_expired_datamodel_from_dynamodb_controller"
         self.create_dynamodb_table()
 
         model = SessionDataModel(session_key)
@@ -116,7 +121,7 @@ class DynamoDBTestCase(TestCase):
     @mock_dynamodb
     def test_get_not_expired_datamodel_from_dynamodb_controller(self):
 
-        session_key = "aaaaaaaaaa"
+        session_key = "test_get_not_expired_datamodel_from_dynamodb_controller"
         self.create_dynamodb_table()
 
         model = SessionDataModel(session_key)
@@ -128,5 +133,84 @@ class DynamoDBTestCase(TestCase):
         time.sleep(2)
 
         db = DynamoDB(self.client)
-        
+
         model = db.get(session_key=session_key)
+
+    @mock_dynamodb
+    def test_set_datamodel_via_dynamodb_controller(self):
+
+        session_key = "test_set_datamodel_via_dynamodb_controller"
+        self.create_dynamodb_table()
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model[get_config()["TTL_ATTRIBUTE_NAME"]] = int(datetime.now().timestamp()) + 50
+
+        db = DynamoDB(self.client)
+        db.set(model, get_config()["DYNAMODB_TABLENAME"])
+
+        query_model = db.get(session_key=session_key)
+        self.assertEqual(model.a, query_model.a)
+
+    @mock_dynamodb
+    def test_set_duplicated_datamodel_via_dynamodb_controller(self):
+
+        session_key = "test_set_duplicated_datamodel_via_dynamodb_controller"
+        self.create_dynamodb_table()
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model[get_config()["TTL_ATTRIBUTE_NAME"]] = int(datetime.now().timestamp()) + 50
+
+        db = DynamoDB(self.client)
+        db.set(model, get_config()["DYNAMODB_TABLENAME"])
+        query_model = db.get(session_key=session_key)
+        self.assertEqual(model.a, query_model.a)
+
+        with self.assertRaises(SessionKeyDuplicated):
+            db.set(model, get_config()["DYNAMODB_TABLENAME"])
+
+    @mock_dynamodb
+    def test_exist_check_via_dynamodb_controller(self):
+
+        session_key = "test_set_duplicated_datamodel_via_dynamodb_controller"
+        self.create_dynamodb_table()
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model[get_config()["TTL_ATTRIBUTE_NAME"]] = int(datetime.now().timestamp()) + 50
+
+        db = DynamoDB(self.client)
+        db.set(model, get_config()["DYNAMODB_TABLENAME"])
+        query_model = db.get(session_key=session_key)
+        self.assertEqual(model.a, query_model.a)
+
+        self.assertTrue(db.exists(session_key))
+        self.assertFalse(db.exists(session_key + "_not_exists"))
+
+    @parameterized.expand(
+        [
+            [1],
+            [1.03],
+            [True],
+            [(1, 2, 3)],
+            [[1, 2, 3]],
+        ]
+    )
+    @mock_dynamodb
+    def test_exist_check_input_type_error_via_dynamodb_controller(self, error_input: Any):
+
+        session_key = "test_set_duplicated_datamodel_via_dynamodb_controller"
+        self.create_dynamodb_table()
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model[get_config()["TTL_ATTRIBUTE_NAME"]] = int(datetime.now().timestamp()) + 50
+
+        db = DynamoDB(self.client)
+        db.set(model, get_config()["DYNAMODB_TABLENAME"])
+        query_model = db.get(session_key=session_key)
+        self.assertEqual(model.a, query_model.a)
+
+        with self.assertRaises(TypeError):
+            db.exists(error_input)

@@ -369,9 +369,9 @@ class AWSDynamoDBTestCase(TestCase):
     # Insert Item
     @parameterized.expand(
         [
-            ["aaaaaaaaa"],
-            ["bbbbbbbbb"],
-            ["ccccccccc"],
+            ["aaaaaaaa"],
+            ["bbbbbbbb"],
+            ["cccccccc"],
         ]
     )
     @mock_dynamodb
@@ -403,8 +403,6 @@ class AWSDynamoDBTestCase(TestCase):
         model["c"] = 3
         model["d"] = 4
         model["e"] = "qwerty"
-
-        insert_session_item(data=model, table_name=options["table"])
 
         resp = insert_session_item(data=model)
         self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)

@@ -81,7 +81,6 @@ def key_exists(session_key: str, table_name: Optional[str] = None, client=None) 
         },
         ProjectionExpression=f"{pk}",
     )
-
     return "Item" in response
 
 
@@ -123,6 +122,9 @@ def insert_session_item(
 
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
+
+    if key_exists(data.session_key):
+        raise SessionKeyDuplicated
 
     resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
     table = resource.Table(table_name)
@@ -175,12 +177,19 @@ class DynamoDB:
 
         return model
 
-    def set(self, session_key: Optional[str] = None, session_data=None) -> None:
-        return
+    def set(
+        self,
+        data: SessionDataModel,
+        table_name: Optional[str] = None,
+        return_consumed_capacity: Literal["INDEXES", "TOTAL", "NONE"] = "TOTAL",
+    ) -> None:
+        insert_session_item(data, table_name, return_consumed_capacity)
         # Partision key duplicated
-        raise SessionKeyDuplicated
+        # raise SessionKeyDuplicated
+        return
 
-    def exists(self, session_key: Optional[str] = None) -> bool:
-        return False
-        # if not found then raise
-        raise SessionKeyDoesNotExist
+    def exists(self, session_key: str) -> bool:
+        if type(session_key) is not str:
+            raise TypeError("session_key should be type of str.")
+
+        return key_exists(session_key=session_key)
