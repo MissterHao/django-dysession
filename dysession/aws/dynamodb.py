@@ -93,7 +93,7 @@ def get_item(session_key: str, table_name: Optional[str] = None) -> SessionDataM
     assert type(session_key) is str, "session_key should be string type"
 
     logging.info("Get Item from DynamoDB")
-    
+
     pk = get_config()["PARTITION_KEY_NAME"]
 
     resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
@@ -187,12 +187,10 @@ class DynamoDB:
         return_consumed_capacity: Literal["INDEXES", "TOTAL", "NONE"] = "TOTAL",
     ) -> None:
         insert_session_item(data, table_name, return_consumed_capacity)
-        # Partision key duplicated
-        # raise SessionKeyDuplicated
-        return
+        
 
     def exists(self, session_key: str) -> bool:
         if type(session_key) is not str:
-            raise TypeError("session_key should be type of str.")
+            raise TypeError(f"session_key should be type of str instead of {type(session_key)}.")
 
         return key_exists(session_key=session_key)
