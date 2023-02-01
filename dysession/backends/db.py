@@ -22,7 +22,6 @@ class SessionStore(SessionBase):
 
     def __init__(self, session_key: Optional[str], **kwargs: Any) -> None:
         super().__init__(session_key, **kwargs)
-        # self.client = boto3.client("dynamodb")
         self.db = DynamoDB(
             client=boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
         )
@@ -43,10 +42,12 @@ class SessionStore(SessionBase):
         """
         self.accessed = True
         try:
-            return self._session_cache
+            if isinstance(self._session_cache, SessionDataModel):
+                return self._session_cache
+            raise AttributeError
         except AttributeError:
             if self.session_key is None or no_load:
-                self._session_cache = SessionDataModel()
+                self._session_cache = SessionDataModel(self.session_key)
             else:
                 self._session_cache = self.load()
         return self._session_cache
@@ -68,6 +69,9 @@ class SessionStore(SessionBase):
 
     def items(self):
         return self._session.items()
+
+    def __str__(self):
+        return str(self._get_session())
 
     # ====== Methods that subclass must implement
     def exists(self, session_key: str) -> bool:
@@ -100,14 +104,17 @@ class SessionStore(SessionBase):
         object and don't create one (raise UpdateError if needed).
         """
         try:
-            self.db.set(
-                data=SessionDataModel(self._session_key),
-            )
+            if self._session_key is None:
+                return self.create()
+
+            data = self._get_session(no_load=must_create)
+            data.session_key = self._session_key
+            self.db.set(data=data)
         except SessionKeyDuplicated:
             if must_create:
                 raise SessionKeyDuplicated
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, session_key=None):
         """
         Delete the session data under this key. If the key is None, use the
         current session key value.
