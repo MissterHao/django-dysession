@@ -1,3 +1,4 @@
+import json
 from typing import Any, Optional
 
 
@@ -11,15 +12,13 @@ class SessionDataModel:
             raise TypeError("session_key should be type str or None")
 
         self.session_key = session_key
-        self.__variables_names = set(
-            [
-                "session_key",
-            ]
-        )
+        self.__variables_names = set(["session_key"])
 
     def __getitem__(self, key) -> Any:
-        if key in ["_session_expiry"]:
-            return True
+        # Set SESSION_EXPIRE_AT_BROWSER_CLOSE to False
+        # https://docs.djangoproject.com/en/4.1/topics/http/sessions/#browser-length-sessions-vs-persistent-sessions
+        if key == "_session_expiry":
+            return False
 
         try:
             return getattr(self, key)
@@ -76,6 +75,5 @@ class SessionDataModel:
         data = {}
         for key in self.__variables_names:
             data[key] = getattr(self, key)
-        import json
 
         return json.dumps(data)
