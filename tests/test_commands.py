@@ -27,7 +27,6 @@ class CommandTestCase:
 #     def test_init_dynamodb_table(self):
 
 #         client = boto3.client("dynamodb")
-#         print(client)
 #         pass
 
 
@@ -35,14 +34,11 @@ class CommandTestCase:
 #     def test_call_help(self):
 #         out = StringIO()
 #         call_command("dysession_clear", "-h", stdout=out)
-#         print(out.read())
 
 #         call_command("dysession_clear", *["-u", "XD"], "-h", stdout=out)
-#         print(out.read())
 
 
 # class DysessionDestoryTestCase(CommandTestCase, TestCase):
 #     def test_call_help(self):
 #         out = StringIO()
 #         call_command("dysession_destory", "-h", stdout=out)
-#         print(out.read())

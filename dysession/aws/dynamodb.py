@@ -1,4 +1,5 @@
 from datetime import datetime
+import logging
 from typing import Any, Callable, Dict, Literal, Optional, Union
 
 import boto3
@@ -91,6 +92,8 @@ def get_item(session_key: str, table_name: Optional[str] = None) -> SessionDataM
 
     assert type(session_key) is str, "session_key should be string type"
 
+    logging.info("Get Item from DynamoDB")
+    
     pk = get_config()["PARTITION_KEY_NAME"]
 
     resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
@@ -123,8 +126,8 @@ def insert_session_item(
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
 
-    if key_exists(data.session_key):
-        raise SessionKeyDuplicated
+    # if key_exists(data.session_key):
+    #     raise SessionKeyDuplicated
 
     resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
     table = resource.Table(table_name)

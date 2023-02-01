@@ -14,6 +14,7 @@ from dysession.backends.error import (
     SessionKeyDuplicated,
 )
 from dysession.backends.model import SessionDataModel
+from dysession.settings import get_config
 
 
 class SessionStore(SessionBase):
@@ -22,7 +23,9 @@ class SessionStore(SessionBase):
     def __init__(self, session_key: Optional[str], **kwargs: Any) -> None:
         super().__init__(session_key, **kwargs)
         # self.client = boto3.client("dynamodb")
-        self.db = DynamoDB(client=boto3.client("dynamodb"))
+        self.db = DynamoDB(
+            client=boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
+        )
 
     def _get_session_from_ddb(self) -> SessionDataModel:
         try:
@@ -63,6 +66,9 @@ class SessionStore(SessionBase):
         super().clear()
         self._session_cache = SessionDataModel()
 
+    def items(self):
+        return self._session.items()
+
     # ====== Methods that subclass must implement
     def exists(self, session_key: str) -> bool:
         """
@@ -95,8 +101,7 @@ class SessionStore(SessionBase):
         """
         try:
             self.db.set(
-                session_key=self._session_key,
-                session_data=self._get_session(must_create),
+                data=SessionDataModel(self._session_key),
             )
         except SessionKeyDuplicated:
             if must_create:

@@ -23,9 +23,6 @@ class Command(BaseCommand):
     def handle(self, *args: Any, **options: Any) -> Optional[str]:
         userids = options.get("uid", None)
         if userids:
-            print(f"Ready to clear {userids} session data.")
-            return
-
-        print("Clearing whole session data")
-        return 
+            ...
+        return
 
