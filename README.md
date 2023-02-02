@@ -35,7 +35,7 @@ Django-dysession is a simple and easy-to-use app which allow Django developers t
 + Support ttl attribute
   Django's default session won't delete expired session data.
   By using DynamoDB, we can take advantage of DynamoDB's ttl attrubute to auto delete expired session data.
-+
++ Taking advantage of AWS serverless service! ( No more effort to maintain )
 
 
 ## Requirements
@@ -47,6 +47,10 @@ Boto3 is the Amazon Web Services (AWS) Software Development Kit (SDK) for Python
 
 ## Installation
 
+Install from PyPI ( or manually download from PyPI):
+```bash
+pip install django-dysession
+```
 
 ## Getting Started
 First of all, add `dysession` into `INSTALLED_APPS` in settings.py.
@@ -63,9 +67,24 @@ SESSION_ENGINE = "dysession.backends.db"
 ```
 
 Second, we need to create a DynamoDB to store session data which's name is `sessions` as default.
-
-
 Run the commands bellow in cmd.
+```bash
+python manage.py dysession_init
+```
+
+Then, we can enjoy it now!
+```python
+from django.http import HttpResponse
+
+def mainpage(request):
+    request.session["is_admin"] = True
+    request.session["bottle_of_milks"] = 20
+    request.session["planet_have_been_to"] = ["Earth", "Jupiter", "Saturn"]
+
+    return HttpResponse("Ayyy")
+
+```
+
 
 ## Django Commands
 
