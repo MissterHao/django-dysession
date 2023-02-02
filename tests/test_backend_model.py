@@ -106,3 +106,50 @@ class SessionDataModelTestCase(TestCase):
         model["d"] = 1
 
         self.assertEqual(set(model), set(["a", "b", "c", "d", "session_key"]))
+
+    def test_items(self):
+        model = SessionDataModel("session_key")
+
+        model["a"] = 1
+        model["b"] = 2
+        model["c"] = 3
+        model["d"] = 4
+
+
+        keys = []
+        values = []
+        for k, v in model.items():
+            keys.append(k)
+            values.append(v)
+
+
+        self.assertEqual(set(keys), set(["a", "b", "c", "d", "session_key"]))
+        self.assertEqual(set(values), set([1, 2, 3, 4, "session_key"]))
+
+    def test_str_magic_method(self):
+        model = SessionDataModel("session_key")
+        model["a"] = 1
+        model["b"] = 2
+        model["c"] = 3
+        model["d"] = 4
+
+        import json
+
+        data = json.loads(str(model))
+
+        for k in ["session_key", "a", "b", "c", "d"]:
+            self.assertIn(k, data.keys())
+
+    def test_get__session_expiry(self):
+        model = SessionDataModel()
+        self.assertFalse(model["_session_expiry"])
+
+    def test_not_found_allow_list(self):
+        model = SessionDataModel()
+
+        for k in ["_auth_user_id", "_auth_user_backend", "_auth_user_hash"]:
+            with self.assertRaises(KeyError):
+                model[k]
+
+            with self.assertRaises(KeyError):
+                self.assertIsNone(model.get(k))

@@ -50,9 +50,6 @@ class SessionDataModel:
         try:
             return self[key]
         except AttributeError:
-            if key in self.NOTFOUND_ALLOW_LIST:
-                return None
-
             if default is Ellipsis:
                 raise
             return default
