@@ -17,6 +17,19 @@ DEFAULT_CONFIG = {
 
 @lru_cache
 def get_config() -> Dict[str, Union[str, int]]:
+    """Return cached django-dysession config in dictionary type
+
+    Contain Items:
+        * DYNAMODB_TABLENAME
+        * PARTITION_KEY_NAME
+        * SORT_KEY_NAME
+        * TTL_ATTRIBUTE_NAME
+        * CACHE_PERIOD
+        * DYNAMODB_REGION
+
+    Returns:
+        Dict[str, Union[str, int]]
+    """
     config = DEFAULT_CONFIG.copy()
     custom_config = getattr(settings, "DYSESSION_CONFIG", {})
     config.update(custom_config)

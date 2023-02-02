@@ -40,3 +40,15 @@
 ## Installation
 
 ## Example
+
+
+```python
+INSTALLED_APPS = [
+    ...
+    "dysession", # add dysession to installed apps
+    # 'django.contrib.sessions', # remove this default session
+    ...
+]
+
+SESSION_ENGINE = "dysession.backends.db"
+```

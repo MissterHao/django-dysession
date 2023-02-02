@@ -14,6 +14,7 @@ from dysession.backends.error import (
     SessionKeyDuplicated,
 )
 from dysession.backends.model import SessionDataModel
+from dysession.settings import get_config
 
 
 class SessionStore(SessionBase):
@@ -21,12 +22,14 @@ class SessionStore(SessionBase):
 
     def __init__(self, session_key: Optional[str], **kwargs: Any) -> None:
         super().__init__(session_key, **kwargs)
-        # self.client = boto3.client("dynamodb")
-        self.db = DynamoDB(client=boto3.client("dynamodb"))
+        self.db = DynamoDB(
+            client=boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
+        )
+        self._get_session()
 
     def _get_session_from_ddb(self) -> SessionDataModel:
         try:
-            return self.db.get(session_key=self.session_key, ttl=timezone.now())
+            return self.db.get(session_key=self.session_key)
         except (SessionKeyDoesNotExist, SessionExpired, SuspiciousOperation) as e:
             if isinstance(e, SuspiciousOperation):
                 logger = logging.getLogger(f"django.security.{e.__class__.__name__}")
@@ -40,10 +43,12 @@ class SessionStore(SessionBase):
         """
         self.accessed = True
         try:
-            return self._session_cache
+            if isinstance(self._session_cache, SessionDataModel):
+                return self._session_cache
+            raise AttributeError
         except AttributeError:
             if self.session_key is None or no_load:
-                self._session_cache = SessionDataModel()
+                self._session_cache = SessionDataModel(self.session_key)
             else:
                 self._session_cache = self.load()
         return self._session_cache
@@ -63,7 +68,13 @@ class SessionStore(SessionBase):
         super().clear()
         self._session_cache = SessionDataModel()
 
-    # ====== Methods that subclass must implement
+    def items(self):
+        return self._session.items()
+
+    def __str__(self):
+        return str(self._get_session())
+
+    # Methods that subclass must implement
     def exists(self, session_key: str) -> bool:
         """
         Return True if the given session_key already exists.
@@ -87,22 +98,24 @@ class SessionStore(SessionBase):
             self.modified = True
             return
 
-    def save(self, must_create: bool = ...) -> None:
+    def save(self, must_create: bool = False) -> None:
         """
         Save the session data. If 'must_create' is True, create a new session
         object (or raise CreateError). Otherwise, only update an existing
         object and don't create one (raise UpdateError if needed).
         """
         try:
-            self.db.set(
-                session_key=self._session_key,
-                session_data=self._get_session(must_create),
-            )
+            if self._session_key is None:
+                return self.create()
+
+            data = self._get_session(no_load=must_create)
+            data.session_key = self._session_key
+            self.db.set(data=data)
         except SessionKeyDuplicated:
             if must_create:
                 raise SessionKeyDuplicated
 
-    def delete(self, request, *args, **kwargs):
+    def delete(self, session_key=None):
         """
         Delete the session data under this key. If the key is None, use the
         current session key value.

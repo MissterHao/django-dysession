@@ -337,37 +337,6 @@ class AWSDynamoDBTestCase(TestCase):
             )
 
     # Get Item
-    @mock_dynamodb
-    def test_get_item_without_client(self):
-
-        options = {
-            "pk": get_config()["PARTITION_KEY_NAME"],
-            "sk": get_config()["SORT_KEY_NAME"],
-            "table": "sessions",
-            "region": "ap-northeast-1",
-        }
-
-        try:
-            check_dynamodb_table_exists(table_name=options["table"])
-        except DynamodbTableNotFound:
-            create_dynamodb_table(
-                options={
-                    "pk": options["pk"],
-                    "sk": options["sk"],
-                    "table": options["table"],
-                },
-            )
-
-        session_key = "aaaaaaaaaa"
-        model = SessionDataModel(session_key)
-        model["a"] = 1
-        model["b"] = "qwerty"
-
-        resp = insert_session_item(data=model)
-        self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)
-
-        resp = get_item(session_key=session_key, table_name=options["table"])
-        self.assertIn("Item", resp)
 
     @mock_dynamodb
     def test_get_item_using_not_exist_key(self):
@@ -394,15 +363,15 @@ class AWSDynamoDBTestCase(TestCase):
 
         with self.assertRaises(DynamodbItemNotFound):
             resp = get_item(
-                session_key="not_exist_key", table_name=options["table"], client=client
+                session_key="not_exist_key", table_name=options["table"]
             )
 
     # Insert Item
     @parameterized.expand(
         [
-            ["aaaaaaaaa"],
-            ["bbbbbbbbb"],
-            ["ccccccccc"],
+            ["aaaaaaaa"],
+            ["bbbbbbbb"],
+            ["cccccccc"],
         ]
     )
     @mock_dynamodb
@@ -435,15 +404,13 @@ class AWSDynamoDBTestCase(TestCase):
         model["d"] = 4
         model["e"] = "qwerty"
 
-        insert_session_item(data=model, table_name=options["table"])
-
         resp = insert_session_item(data=model)
         self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)
 
         resp = get_item(
-            session_key=session_key, table_name=options["table"], client=client
+            session_key=session_key, table_name=options["table"]
         )
-        self.assertIn("Item", resp)
+        self.assertIsInstance(resp, SessionDataModel)
 
     @parameterized.expand(
         [
@@ -485,5 +452,5 @@ class AWSDynamoDBTestCase(TestCase):
         resp = insert_session_item(data=model)
         self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)
 
-        resp = get_item(session_key=session_key, client=client)
-        self.assertIn("Item", resp)
+        resp = get_item(session_key=session_key)
+        self.assertIsInstance(resp, SessionDataModel)
