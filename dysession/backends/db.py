@@ -25,6 +25,7 @@ class SessionStore(SessionBase):
         self.db = DynamoDB(
             client=boto3.client("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
         )
+        self._get_session()
 
     def _get_session_from_ddb(self) -> SessionDataModel:
         try:
@@ -73,7 +74,7 @@ class SessionStore(SessionBase):
     def __str__(self):
         return str(self._get_session())
 
-    # ====== Methods that subclass must implement
+    # Methods that subclass must implement
     def exists(self, session_key: str) -> bool:
         """
         Return True if the given session_key already exists.
@@ -97,7 +98,7 @@ class SessionStore(SessionBase):
             self.modified = True
             return
 
-    def save(self, must_create: bool = ...) -> None:
+    def save(self, must_create: bool = False) -> None:
         """
         Save the session data. If 'must_create' is True, create a new session
         object (or raise CreateError). Otherwise, only update an existing
