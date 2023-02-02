@@ -31,12 +31,6 @@ class SessionDataModelTestCase(TestCase):
         model = SessionDataModel()
         model["good_key"] = 0
 
-    def test_set_attribute_session_key(self):
-        model = SessionDataModel()
-
-        with self.assertRaises(ValueError):
-            model["session_key"] = 0
-
     def test_get_attribute(self):
         model = SessionDataModel()
         model["good_key"] = 0
@@ -111,4 +105,4 @@ class SessionDataModelTestCase(TestCase):
         model["c"] = 1
         model["d"] = 1
 
-        self.assertEqual(set(model), set(["a", "b", "c", "d"]))
+        self.assertEqual(set(model), set(["a", "b", "c", "d", "session_key"]))

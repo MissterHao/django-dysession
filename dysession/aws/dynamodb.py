@@ -126,8 +126,8 @@ def insert_session_item(
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
 
-    # if key_exists(data.session_key):
-    #     raise SessionKeyDuplicated
+    if key_exists(data.session_key):
+        raise SessionKeyDuplicated
 
     resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
     table = resource.Table(table_name)
@@ -185,9 +185,13 @@ class DynamoDB:
         data: SessionDataModel,
         table_name: Optional[str] = None,
         return_consumed_capacity: Literal["INDEXES", "TOTAL", "NONE"] = "TOTAL",
+        ignore_duplicated: bool = True,
     ) -> None:
-        insert_session_item(data, table_name, return_consumed_capacity)
-        
+        try:
+            insert_session_item(data, table_name, return_consumed_capacity)
+        except SessionKeyDuplicated:
+            if not ignore_duplicated:
+                raise SessionKeyDuplicated
 
     def exists(self, session_key: str) -> bool:
         if type(session_key) is not str:

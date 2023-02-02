@@ -42,7 +42,7 @@ class SessionDataModel:
         return iter(self.__variables_names)
 
     def __is_empty(self):
-        return len(self.__variables_names) == 0
+        return "session_key" in self.__variables_names and len(self.__variables_names) == 1
 
     is_empty = property(__is_empty)
 

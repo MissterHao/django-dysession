@@ -153,6 +153,23 @@ class DynamoDBTestCase(TestCase):
         self.assertEqual(model.a, query_model.a)
 
     @mock_dynamodb
+    def test_set_duplicated_datamodel_via_dynamodb_controller_ignore_duplicated(self):
+
+        session_key = "test_set_duplicated_datamodel_via_dynamodb_controller"
+        self.create_dynamodb_table()
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model[get_config()["TTL_ATTRIBUTE_NAME"]] = int(datetime.now().timestamp()) + 50
+
+        db = DynamoDB(self.client)
+        db.set(model, get_config()["DYNAMODB_TABLENAME"])
+        query_model = db.get(session_key=session_key)
+        self.assertEqual(model.a, query_model.a)
+
+        db.set(model, get_config()["DYNAMODB_TABLENAME"], ignore_duplicated=True)
+
+    @mock_dynamodb
     def test_set_duplicated_datamodel_via_dynamodb_controller(self):
 
         session_key = "test_set_duplicated_datamodel_via_dynamodb_controller"
@@ -168,7 +185,7 @@ class DynamoDBTestCase(TestCase):
         self.assertEqual(model.a, query_model.a)
 
         with self.assertRaises(SessionKeyDuplicated):
-            db.set(model, get_config()["DYNAMODB_TABLENAME"])
+            db.set(model, get_config()["DYNAMODB_TABLENAME"], ignore_duplicated=False)
 
     @mock_dynamodb
     def test_exist_check_via_dynamodb_controller(self):
@@ -198,7 +215,9 @@ class DynamoDBTestCase(TestCase):
         ]
     )
     @mock_dynamodb
-    def test_exist_check_input_type_error_via_dynamodb_controller(self, error_input: Any):
+    def test_exist_check_input_type_error_via_dynamodb_controller(
+        self, error_input: Any
+    ):
 
         session_key = "test_set_duplicated_datamodel_via_dynamodb_controller"
         self.create_dynamodb_table()
