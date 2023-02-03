@@ -9,6 +9,7 @@ from django.utils import timezone
 
 from dysession.aws.dynamodb import DynamoDB
 from dysession.backends.error import (
+    DeleteSessionError,
     SessionExpired,
     SessionKeyDoesNotExist,
     SessionKeyDuplicated,
@@ -121,9 +122,12 @@ class SessionStore(SessionBase):
         current session key value.
         """
         try:
-            self.db.delete(session_key=self._session_key)
-        except:
-            pass
+            if session_key is None:
+                session_key = self._session_key
+            print(f"On Delete: session_key: {session_key}")
+            self.db.delete(session_key=session_key)
+        except DeleteSessionError:
+            print(f"On Delete Error: session_key: {session_key}")
 
     def load(self) -> SessionDataModel:
         """

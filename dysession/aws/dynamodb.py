@@ -206,3 +206,11 @@ class DynamoDB:
             )
 
         return key_exists(session_key=session_key)
+
+    def delete(self, session_key: Optional[str]) -> bool:
+        if type(session_key) is not str:
+            raise TypeError(
+                f"session_key should be type of str instead of {type(session_key)}."
+            )
+
+        return True
