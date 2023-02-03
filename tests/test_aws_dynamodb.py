@@ -6,6 +6,7 @@ from parameterized import parameterized
 from dysession.aws.dynamodb import (
     check_dynamodb_table_exists,
     create_dynamodb_table,
+    delete_session_item,
     destory_dynamodb_table,
     get_item,
     insert_session_item,
@@ -362,9 +363,7 @@ class AWSDynamoDBTestCase(TestCase):
             )
 
         with self.assertRaises(DynamodbItemNotFound):
-            resp = get_item(
-                session_key="not_exist_key", table_name=options["table"]
-            )
+            resp = get_item(session_key="not_exist_key", table_name=options["table"])
 
     # Insert Item
     @parameterized.expand(
@@ -407,9 +406,7 @@ class AWSDynamoDBTestCase(TestCase):
         resp = insert_session_item(data=model)
         self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)
 
-        resp = get_item(
-            session_key=session_key, table_name=options["table"]
-        )
+        resp = get_item(session_key=session_key, table_name=options["table"])
         self.assertIsInstance(resp, SessionDataModel)
 
     @parameterized.expand(
@@ -454,3 +451,48 @@ class AWSDynamoDBTestCase(TestCase):
 
         resp = get_item(session_key=session_key)
         self.assertIsInstance(resp, SessionDataModel)
+
+    @parameterized.expand(
+        [
+            ["aaaaaaaaa"],
+            ["bbbbbbbbb"],
+            ["ccccccccc"],
+        ]
+    )
+    @mock_dynamodb
+    def test_delete_item_without_tablename(self, session_key: str):
+
+        options = {
+            "pk": get_config()["PARTITION_KEY_NAME"],
+            "sk": get_config()["SORT_KEY_NAME"],
+            "table": "sessions",
+            "region": "ap-northeast-1",
+        }
+
+        client = boto3.client("dynamodb", region_name=options["region"])
+        try:
+            check_dynamodb_table_exists(table_name=options["table"], client=client)
+        except DynamodbTableNotFound:
+            create_dynamodb_table(
+                options={
+                    "pk": options["pk"],
+                    "sk": options["sk"],
+                    "table": options["table"],
+                },
+                client=client,
+            )
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model["b"] = 2
+        model["c"] = 3
+        model["d"] = 4
+        model["e"] = "qwerty"
+
+        resp = insert_session_item(data=model)
+        self.assertEqual(resp["ResponseMetadata"]["HTTPStatusCode"], 200)
+
+        resp = delete_session_item(data=model)
+
+        with self.assertRaises(DynamodbItemNotFound):
+            resp = get_item(session_key=session_key)

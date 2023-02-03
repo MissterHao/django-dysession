@@ -137,7 +137,6 @@ def insert_session_item(
     insert_item = {pk: data.session_key}
     for key in data:
         insert_item[key] = data[key]
-        print(key, data[key])
 
     response = table.put_item(
         TableName=table_name,
@@ -238,4 +237,4 @@ class DynamoDB:
         try:
             delete_session_item(data=data, table_name=table_name)
         except AssertionError:
-            pass
+            raise

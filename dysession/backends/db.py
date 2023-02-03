@@ -124,13 +124,11 @@ class SessionStore(SessionBase):
         if session_key is None:
             session_key = self._session_key
 
-        print(f"On Delete: session_key: {session_key}")
-        self.db.delete(self._get_session())
         
         try:
-            pass
+            self.db.delete(self._get_session())
         except DeleteSessionError:
-            print(f"On Delete Error: session_key: {session_key}")
+            pass
 
     def load(self) -> SessionDataModel:
         """

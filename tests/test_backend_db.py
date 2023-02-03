@@ -233,3 +233,34 @@ class DynamoDBTestCase(TestCase):
 
         with self.assertRaises(TypeError):
             db.exists(error_input)
+
+    @mock_dynamodb
+    def test_delete_item_via_dynamodb_controller(self):
+
+        session_key = "test_set_duplicated_datamodel_via_dynamodb_controller"
+        self.create_dynamodb_table()
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model[get_config()["TTL_ATTRIBUTE_NAME"]] = int(datetime.now().timestamp()) + 50
+
+        db = DynamoDB(self.client)
+        db.set(model, get_config()["DYNAMODB_TABLENAME"])
+        query_model = db.get(session_key=session_key)
+        self.assertEqual(model.a, query_model.a)
+
+        db.delete(model)
+
+    @mock_dynamodb
+    def test_delete_item_via_dynamodb_controller_raise_error(self):
+
+        session_key = None
+        self.create_dynamodb_table()
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model[get_config()["TTL_ATTRIBUTE_NAME"]] = int(datetime.now().timestamp()) + 50
+
+        db = DynamoDB(self.client)
+        with self.assertRaises(AssertionError):
+            db.delete(model)
