@@ -1,6 +1,8 @@
 import json
 from typing import Any, Optional
 
+from dysession.settings import get_config
+
 
 class SessionDataModel:
 
@@ -11,8 +13,8 @@ class SessionDataModel:
         if type(session_key) is not str and session_key is not None:
             raise TypeError("session_key should be type str or None")
 
-        self.session_key = session_key
-        self.__variables_names = set(["session_key"])
+        self.__variables_names = set([])
+        self[get_config()["PARTITION_KEY_NAME"]] = session_key
 
     def __getitem__(self, key) -> Any:
         # Set SESSION_EXPIRE_AT_BROWSER_CLOSE to False
@@ -27,10 +29,15 @@ class SessionDataModel:
                 raise KeyError
             raise
 
-    def __setitem__(self, key, value):
-        # if key == "session_key":
-        #     raise ValueError()
+    def __get_session_key(self):
+        return self[get_config()["PARTITION_KEY_NAME"]]
 
+    def __set_session_key(self, value: Any):
+        self[get_config()["PARTITION_KEY_NAME"]] = value
+
+    session_key = property(__get_session_key, __set_session_key)
+
+    def __setitem__(self, key, value):
         setattr(self, key, value)
         self.__variables_names.add(key)
 
@@ -42,7 +49,7 @@ class SessionDataModel:
         return iter(self.__variables_names)
 
     def __is_empty(self):
-        return "session_key" in self.__variables_names and len(self.__variables_names) == 1
+        return len(self.__variables_names) == 0
 
     is_empty = property(__is_empty)
 

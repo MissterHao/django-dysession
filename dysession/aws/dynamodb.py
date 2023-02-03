@@ -147,6 +147,32 @@ def insert_session_item(
     return response
 
 
+def delete_session_item(
+    data: SessionDataModel,
+    table_name: Optional[str] = None,
+) -> bool:
+    """Delete a session key"""
+
+    assert type(data.session_key) is str, "session_key should be string type"
+
+    if table_name is None:
+        table_name = get_config()["DYNAMODB_TABLENAME"]
+
+    resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
+    table = resource.Table(table_name)
+    pk = get_config()["PARTITION_KEY_NAME"]
+
+    insert_item = {pk: data.session_key}
+    for key in data:
+        insert_item[key] = data[key]
+
+    response = table.delete_item(
+        Key={pk: data.session_key},
+    )
+
+    return response
+
+
 class DynamoDB:
     def __init__(self, client=None) -> None:
         self.client = client
@@ -206,3 +232,9 @@ class DynamoDB:
             )
 
         return key_exists(session_key=session_key)
+
+    def delete(self, data: SessionDataModel, table_name: Optional[str] = None) -> bool:
+        try:
+            delete_session_item(data=data, table_name=table_name)
+        except AssertionError:
+            raise

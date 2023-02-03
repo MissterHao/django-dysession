@@ -8,3 +8,7 @@ class SessionKeyDoesNotExist(Exception):
 
 class SessionKeyDuplicated(Exception):
     ...
+
+
+class DeleteSessionError(Exception):
+    ...

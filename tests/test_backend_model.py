@@ -89,13 +89,13 @@ class SessionDataModelTestCase(TestCase):
 
     def test_is_empty(self):
         model = SessionDataModel()
-        self.assertTrue(model.is_empty)
+        self.assertFalse(model.is_empty)
 
         model["good_key"] = 0
         self.assertFalse(model.is_empty)
 
         del model["good_key"]
-        self.assertTrue(model.is_empty)
+        self.assertFalse(model.is_empty)
 
     def test_iter(self):
         model = SessionDataModel()
@@ -105,7 +105,7 @@ class SessionDataModelTestCase(TestCase):
         model["c"] = 1
         model["d"] = 1
 
-        self.assertEqual(set(model), set(["a", "b", "c", "d", "session_key"]))
+        self.assertEqual(set(model), set(["a", "b", "c", "d", "PK"]))
 
     def test_items(self):
         model = SessionDataModel("session_key")
@@ -123,7 +123,7 @@ class SessionDataModelTestCase(TestCase):
             values.append(v)
 
 
-        self.assertEqual(set(keys), set(["a", "b", "c", "d", "session_key"]))
+        self.assertEqual(set(keys), set(["a", "b", "c", "d", "PK"]))
         self.assertEqual(set(values), set([1, 2, 3, 4, "session_key"]))
 
     def test_str_magic_method(self):
@@ -137,7 +137,7 @@ class SessionDataModelTestCase(TestCase):
 
         data = json.loads(str(model))
 
-        for k in ["session_key", "a", "b", "c", "d"]:
+        for k in ["PK", "a", "b", "c", "d"]:
             self.assertIn(k, data.keys())
 
     def test_get__session_expiry(self):
@@ -153,3 +153,9 @@ class SessionDataModelTestCase(TestCase):
 
             with self.assertRaises(KeyError):
                 self.assertIsNone(model.get(k))
+
+
+    def test_get_and_set_session_key(self):
+        model = SessionDataModel()
+        model.session_key = "key"
+        self.assertEqual(model.session_key, "key")

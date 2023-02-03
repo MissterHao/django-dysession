@@ -1,7 +1,8 @@
 <div align="center">
 <h1>django-dysession</h1>
 <p>django-dysession is a django extension by using AWS DynamoDB as a session backend</p>
-<img src="https://socialify.git.ci/MissterHao/django-dysession/image?description=1&font=Source%20Code%20Pro&language=1&name=1&owner=1&pattern=Plus&stargazers=1&theme=Light" alt="django-dysession" width="640" height="320" />
+<img src="asset/banner.png" alt="django-dysession" width="640" height="320" />
+<!-- <img src="https://socialify.git.ci/MissterHao/django-dysession/image?description=1&font=Source%20Code%20Pro&language=1&name=1&owner=1&pattern=Plus&stargazers=1&theme=Light" alt="django-dysession" width="640" height="320" /> -->
 
 <p align="center" >
 <!-- First line -->
@@ -82,8 +83,11 @@ def mainpage(request):
     request.session["planet_have_been_to"] = ["Earth", "Jupiter", "Saturn"]
 
     return HttpResponse("Ayyy")
-
 ```
+
+Enjoy!
+
+![](asset/dynamodb-real-demo-image.png)
 
 
 ## Django Commands
