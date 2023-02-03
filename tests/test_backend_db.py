@@ -260,7 +260,23 @@ class DynamoDBTestCase(TestCase):
         model = SessionDataModel(session_key)
         model["a"] = 1
         model[get_config()["TTL_ATTRIBUTE_NAME"]] = int(datetime.now().timestamp()) + 50
+        model.session_key = 1
 
         db = DynamoDB(self.client)
         with self.assertRaises(AssertionError):
             db.delete(model)
+
+
+    @mock_dynamodb
+    def test_delete_item_via_dynamodb_controller_with_none_type_session_key(self):
+
+        session_key = None
+        self.create_dynamodb_table()
+
+        model = SessionDataModel(session_key)
+        model["a"] = 1
+        model[get_config()["TTL_ATTRIBUTE_NAME"]] = int(datetime.now().timestamp()) + 50
+        model.session_key = None
+
+        db = DynamoDB(self.client)
+        db.delete(model)

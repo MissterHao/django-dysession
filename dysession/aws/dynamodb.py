@@ -234,6 +234,9 @@ class DynamoDB:
         return key_exists(session_key=session_key)
 
     def delete(self, data: SessionDataModel, table_name: Optional[str] = None) -> bool:
+        if data.session_key is None:
+            return
+            
         try:
             delete_session_item(data=data, table_name=table_name)
         except AssertionError:
