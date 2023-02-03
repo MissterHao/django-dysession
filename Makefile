@@ -11,7 +11,8 @@ coverage:
 
 .PHONY: release
 release:
-	python3 setup.py bdist
+	python setup.py sdist bdist_wheel
+	twine check dist/*
 
 clean:
 	find . -type f -name *.pyc -delete

@@ -31,14 +31,14 @@ def get_config() -> Dict[str, Union[str, int]]:
         Dict[str, Union[str, int]]
     """
     config = DEFAULT_CONFIG.copy()
-    custom_config = getattr(settings, "DYSESSION_CONFIG", {})
+    custom_config = getattr(settings, "DYSESSION", {})
     config.update(custom_config)
     return config
 
 
 @receiver(setting_changed)
 def update_dysession_config(*, setting, **kwargs):
-    if setting == "DYSESSION_CONFIG":  # pragma: no cover
+    if setting == "DYSESSION":  # pragma: no cover
         get_config.cache_clear()  # pragma: no cover
 
 
