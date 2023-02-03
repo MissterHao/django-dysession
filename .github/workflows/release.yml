@@ -34,7 +34,7 @@ jobs:
       - name: Coverage Test
         run: |
           coverage run runtests.py
-	        coverage report
+          coverage report
 
       - name: Set env
         run: |
