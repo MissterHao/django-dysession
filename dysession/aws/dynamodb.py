@@ -1,5 +1,5 @@
-from datetime import datetime
 import logging
+from datetime import datetime
 from typing import Any, Callable, Dict, Literal, Optional, Union
 
 import boto3
@@ -118,6 +118,7 @@ def insert_session_item(
     data: SessionDataModel,
     table_name: Optional[str] = None,
     return_consumed_capacity: Literal["INDEXES", "TOTAL", "NONE"] = "TOTAL",
+    ignore_duplicated: bool = True,
 ) -> bool:
     """Insert a session key"""
 
@@ -126,7 +127,7 @@ def insert_session_item(
     if table_name is None:
         table_name = get_config()["DYNAMODB_TABLENAME"]
 
-    if key_exists(data.session_key):
+    if not ignore_duplicated and key_exists(data.session_key):
         raise SessionKeyDuplicated
 
     resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
@@ -188,13 +189,20 @@ class DynamoDB:
         ignore_duplicated: bool = True,
     ) -> None:
         try:
-            insert_session_item(data, table_name, return_consumed_capacity)
+            insert_session_item(
+                data,
+                table_name,
+                return_consumed_capacity,
+                ignore_duplicated=ignore_duplicated,
+            )
         except SessionKeyDuplicated:
             if not ignore_duplicated:
                 raise SessionKeyDuplicated
 
     def exists(self, session_key: str) -> bool:
         if type(session_key) is not str:
-            raise TypeError(f"session_key should be type of str instead of {type(session_key)}.")
+            raise TypeError(
+                f"session_key should be type of str instead of {type(session_key)}."
+            )
 
         return key_exists(session_key=session_key)
