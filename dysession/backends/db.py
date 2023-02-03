@@ -121,11 +121,14 @@ class SessionStore(SessionBase):
         Delete the session data under this key. If the key is None, use the
         current session key value.
         """
+        if session_key is None:
+            session_key = self._session_key
+
+        print(f"On Delete: session_key: {session_key}")
+        self.db.delete(self._get_session())
+        
         try:
-            if session_key is None:
-                session_key = self._session_key
-            print(f"On Delete: session_key: {session_key}")
-            self.db.delete(session_key=session_key)
+            pass
         except DeleteSessionError:
             print(f"On Delete Error: session_key: {session_key}")
 
