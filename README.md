@@ -32,11 +32,15 @@
 
 Django-dysession is a simple and easy-to-use app which allow Django developers to take DyanmoDB as Session Backend Database.
 
+DynamoDB is Fast, flexible NoSQL database service for single-digit millisecond performance at any scale.
+
+Using DynamoDB for session storage alleviates issues that occur with session handling in a distributed web application by moving sessions off of the local file system and into a shared location. [[1]]
+
 + Easy to use! All you need is add two lines of Code!
 + Support ttl attribute
   Django's default session won't delete expired session data.
   By using DynamoDB, we can take advantage of DynamoDB's ttl attrubute to auto delete expired session data.
-+ Taking advantage of AWS serverless service! ( No more effort to maintain )
++ Taking advantage of AWS serverless service! ( No more effort to maintain and autoscale )
 
 
 ## Requirements
@@ -135,3 +139,8 @@ DYSESSION = {
 
 
 
+
+
+## Reference
+
+[1]: https://docs.aws.amazon.com/aws-sdk-php/v2/guide/feature-dynamodb-session-handler.html
