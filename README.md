@@ -137,10 +137,3 @@ DYSESSION = {
 | CACHE_PERIOD       | 3600           | Define how long should be the cache live in DynamoDB's table |
 | DYNAMODB_REGION    | ap-northeast-1 | The region of the DynamoDB table                             |
 
-
-
-
-
-## Reference
-
-[1]: https://docs.aws.amazon.com/aws-sdk-php/v2/guide/feature-dynamodb-session-handler.html
