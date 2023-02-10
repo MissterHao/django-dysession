@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandParser
 
 from dysession.aws.dynamodb import create_dynamodb_table
+from dysession.logger import get_logger
 from dysession.settings import get_config
 
 from ._arg_types import positive_int
@@ -64,4 +65,7 @@ class Command(BaseCommand):
         return super().add_arguments(parser)
 
     def handle(self, *args: Any, **options: Any) -> Optional[str]:
+        logger = get_logger()
+        logger.info("Start command: initialize dynamodb table")
         create_dynamodb_table(options=options)
+        logger.info("End of command: dynamodb table created successfully!")
