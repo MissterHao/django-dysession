@@ -36,15 +36,16 @@ DynamoDB is Fast, flexible NoSQL database service for single-digit millisecond p
 
 Using DynamoDB for session storage alleviates issues that occur with session handling in a distributed web application by moving sessions off of the local file system and into a shared location. [[1]]
 
-+ Easy to use! All you need is add two lines of Code!
-+ Support ttl attribute
++ Easy to use! All you need is add **2 lines** of Code!
++ Support **TTL(Time to Live) attribute**
   Django's default session won't delete expired session data.
   By using DynamoDB, we can take advantage of DynamoDB's ttl attrubute to auto delete expired session data.
-+ Taking advantage of AWS serverless service! ( No more effort to maintain and autoscale )
++ No more effort to maintain and autoscale your session database ( Taking advantage of AWS serverless service! )
++ Provide beautiful, clearful and colorful error log
 
 
 ## Requirements
-django-dysession use `boto3` to communicate with DynamoDB.
+**django-dysession** use [boto3](https://aws.amazon.com/tw/sdk-for-python/) to interact with AWS DynamoDB.
 Boto3 is the Amazon Web Services (AWS) Software Development Kit (SDK) for Python, which allows Python developers to write software that makes use of services like **DynamoDB**.
 
 + Django >= 3.2
@@ -52,9 +53,9 @@ Boto3 is the Amazon Web Services (AWS) Software Development Kit (SDK) for Python
 
 ## Installation
 
-Install from PyPI ( or manually download from PyPI):
+Install from PyPI ( or manually download from [PyPI](https://pypi.org/project/django-dysession/#files) ):
 ```bash
-pip install django-dysession
+pip install -U django-dysession
 ```
 
 ## Getting Started
@@ -136,4 +137,20 @@ DYSESSION = {
 | TTL_ATTRIBUTE_NAME | ttl            | Time to live attribute name                                  |
 | CACHE_PERIOD       | 3600           | Define how long should be the cache live in DynamoDB's table |
 | DYNAMODB_REGION    | ap-northeast-1 | The region of the DynamoDB table                             |
+
+
+## Logging
+
+Django-Dysession support three kinds of logging.
+
+1. Colorful TTY-based Console Log
+
+   Support colorful and beautiful log when django-dysession interacting with AWS Dysession.
+   ![](/asset/dysession-beautiful-error-log-example.png)
+2. Default logging stream
+
+   Django-Dysession use python core library `logging.StreamHandler`
+3. Default File Stream
+
+   Django-Dysession use python core library `logging.FileHandler`
 

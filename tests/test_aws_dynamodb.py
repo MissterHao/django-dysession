@@ -21,7 +21,7 @@ from dysession.settings import get_config
 
 class AWSDynamoDBTestCase(TestCase):
     def setUp(self):
-        logging.disable(logging.CRITICAL)
+        logging.disable(logging.NOTSET)
 
     def tearDown(self):
         logging.disable(logging.NOTSET)
