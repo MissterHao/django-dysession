@@ -19,8 +19,6 @@ class ColorfulConsoleLoggerHandler(logging.StreamHandler):
 
     def emit(self, record):
         try:
-            # record.msg = "QQQQQQQQQQQQQQ"
-            # record.levelname = "\033[91m" + record.levelname + "\033[0m"
             record.levelname = (
                 LOGLEVEL_TRANSFORM[record.levelno]
                 + f"{record.levelname:>8}"

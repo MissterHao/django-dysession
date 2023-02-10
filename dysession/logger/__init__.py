@@ -2,9 +2,9 @@ import logging
 import sys
 from enum import Enum, auto
 from functools import lru_cache
-from typing import Optional
+from typing import Literal
 
-from handler.colorful_console import ColorfulConsoleLoggerHandler
+from .handler.colorful_console import ColorfulConsoleLoggerHandler
 
 
 class LoggingType(Enum):
@@ -23,9 +23,22 @@ def is_tty() -> bool:
 
 def get_logger(
     logger_name: str = "dysession",
-    logger_type: LoggingType = LoggingType.CONSOLE,
+    logger_type: Literal[LoggingType.CONSOLE, LoggingType.FILE] = LoggingType.CONSOLE,
     level: int = logging.DEBUG,
 ) -> logging.Logger:
+    """
+    This function return a logging.Logger with handlers.
+    Handlers could be `ColorfulConsoleLoggerHandler`, `StreamHandler`, `FileHandler`.
+
+    ```
+    logger = get_logger()
+    logger.debug("This is a DEBUG log.")
+    logger.info("This is a INFO log.")
+    logger.warning("This is a WARNING log.")
+    logger.critical("This is a CRITICAL log.")
+    logger.fatal("This is a FATAL log.")
+    ```
+    """
 
     logger = logging.getLogger(logger_name)
     format = logging.Formatter(
@@ -44,14 +57,15 @@ def get_logger(
 
         handler.setFormatter(format)
         logger.addHandler(handler)
+    else:
+        logger.warning(
+            f"Dysession logger had already initialized with logger({logger.handlers})"
+        )
 
     return logger
 
 
-if __name__ == "__main__":
-    logger = get_logger()
-    logger.debug("This is a DEBUG log.")
-    logger.info("This is a INFO log.")
-    logger.warning("This is a WARNING log.")
-    logger.critical("This is a CRITICAL log.")
-    logger.fatal("This is a FATAL log.")
+__all__ = (
+    LoggingType,
+    get_logger,
+)
