@@ -6,6 +6,7 @@ LOGLEVEL_TRANSFORM = {
     logging.DEBUG: ANSIColor.DEBUG.value,
     logging.INFO: ANSIColor.OKCYAN.value,
     logging.WARNING: ANSIColor.WARNING.value,
+    logging.ERROR: ANSIColor.FAIL.value,
     logging.CRITICAL: ANSIColor.FAIL.value,
     logging.FATAL: ANSIColor.FAIL.value,
 }

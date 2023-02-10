@@ -1,3 +1,5 @@
+import logging
+
 import boto3
 from django.test import TestCase
 from moto import mock_dynamodb
@@ -18,6 +20,12 @@ from dysession.settings import get_config
 
 
 class AWSDynamoDBTestCase(TestCase):
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(self):
+        logging.disable(logging.NOTSET)
+
     @mock_dynamodb
     def test_init_dynamodb_table(self):
 
