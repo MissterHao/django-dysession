@@ -4,6 +4,8 @@ from enum import Enum, auto
 from functools import lru_cache
 from typing import Literal
 
+from dysession.settings import get_config
+
 from .handler.colorful_console import ColorfulConsoleLoggerHandler
 
 
@@ -23,7 +25,7 @@ def is_tty() -> bool:
 
 def get_logger(
     logger_name: str = "dysession",
-    logger_type: Literal[LoggingType.CONSOLE, LoggingType.FILE] = LoggingType.CONSOLE,
+    logger_type: Literal[None, LoggingType.CONSOLE, LoggingType.FILE] = None,
     level: int = logging.DEBUG,
 ) -> logging.Logger:
     """
@@ -40,6 +42,17 @@ def get_logger(
     ```
     """
 
+    if logger_type is None:
+        try:
+            logger_type = LoggingType[get_config()["LOGGING"]["TYPE"]]
+            if (
+                logger_type == LoggingType.PLAINTEXT_CONSOLE
+                or logger_type == LoggingType.COLOR_CONSOLE
+            ):
+                raise KeyError
+        except KeyError:
+            raise KeyError("logger_type only accept 'CONSOLE' and 'FILE'")
+
     logger = logging.getLogger(logger_name)
     format = logging.Formatter(
         "[%(asctime)-s] [%(levelname)-8s] %(name)s %(message)s ... ( %(filename)s:%(levelno)s )"
@@ -53,7 +66,8 @@ def get_logger(
             else:
                 handler = logging.StreamHandler()
         elif logger_type == LoggingType.FILE:
-            handler = logging.FileHandler("session.log", "a", encoding="utf-8")
+            filepath = get_config()["LOGGING"].get("FILE_PATH", "session.log")
+            handler = logging.FileHandler(filepath, "a", encoding="utf-8")
 
         handler.setFormatter(format)
         logger.addHandler(handler)

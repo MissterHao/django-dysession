@@ -126,17 +126,22 @@ DYSESSION = {
     "TTL_ATTRIBUTE_NAME": "ttl",
     "CACHE_PERIOD": 3600,
     "DYNAMODB_REGION": "ap-northeast-1",
+    "LOGGING": {
+        "TYPE": "CONSOLE",
+    },
 }
 ```
 
-
-| Argument           | Default        | Description                                                  |
-| ------------------ | -------------- | ------------------------------------------------------------ |
-| DYNAMODB_TABLENAME | sessions       | DynamoDB table name                                          |
-| PARTITION_KEY_NAME | PK             | Partition key name                                           |
-| TTL_ATTRIBUTE_NAME | ttl            | Time to live attribute name                                  |
-| CACHE_PERIOD       | 3600           | Define how long should be the cache live in DynamoDB's table |
-| DYNAMODB_REGION    | ap-northeast-1 | The region of the DynamoDB table                             |
+| Argument             | Default        | Description                                                                                                                                                                                                                                               |
+|----------------------|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| DYNAMODB_TABLENAME   | sessions       | DynamoDB table name                                                                                                                                                                                                                                       |
+| PARTITION_KEY_NAME   | PK             | Partition key name                                                                                                                                                                                                                                        |
+| TTL_ATTRIBUTE_NAME   | ttl            | Time to live attribute name                                                                                                                                                                                                                               |
+| CACHE_PERIOD         | 3600           | Define how long should be the cache live in DynamoDB's table                                                                                                                                                                                              |
+| DYNAMODB_REGION      | ap-northeast-1 | The region of the DynamoDB table                                                                                                                                                                                                                          |
+| LOGGING              | Dict           | Configuration of Logging                                                                                                                                                                                                                                  |
+| LOGGING["TYPE"]      | CONSOLE        | Only accept two kinds of parameters: `CONSOLE`, `FILE`. If this set to `CONSOLE`, django-dysession will use `StreamHandler` to stream to the console. If this set to `FILE`, django-dysession will use `FileHandler` to stream to `LOGGING["FILE_PATH"]`. |
+| LOGGING["FILE_PATH"] | session.log    | The file path to save logs of session managements.                                                                                                                                                                                                        |
 
 
 ## Logging

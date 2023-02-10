@@ -12,6 +12,9 @@ DEFAULT_CONFIG = {
     "TTL_ATTRIBUTE_NAME": "ttl",
     "CACHE_PERIOD": 3600,
     "DYNAMODB_REGION": "ap-northeast-1",
+    "LOGGING": {
+        "TYPE": "CONSOLE",
+    },
 }
 
 
