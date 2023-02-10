@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime
 from typing import Any
@@ -11,10 +12,8 @@ from dysession.aws.dynamodb import (
     DynamoDB,
     check_dynamodb_table_exists,
     create_dynamodb_table,
-    destory_dynamodb_table,
     get_item,
     insert_session_item,
-    key_exists,
 )
 from dysession.aws.error import DynamodbItemNotFound, DynamodbTableNotFound
 from dysession.backends.error import (
@@ -27,6 +26,12 @@ from dysession.settings import get_config
 
 
 class DynamoDBTestCase(TestCase):
+    def setUp(self):
+        logging.disable(logging.CRITICAL)
+
+    def tearDown(self):
+        logging.disable(logging.NOTSET)
+
     @mock_dynamodb
     def create_dynamodb_table(self):
         self.options = {
@@ -265,7 +270,6 @@ class DynamoDBTestCase(TestCase):
         db = DynamoDB(self.client)
         with self.assertRaises(AssertionError):
             db.delete(model)
-
 
     @mock_dynamodb
     def test_delete_item_via_dynamodb_controller_with_none_type_session_key(self):

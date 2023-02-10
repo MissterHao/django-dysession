@@ -13,6 +13,7 @@ from dysession.backends.error import (
     SessionKeyDuplicated,
 )
 from dysession.backends.model import SessionDataModel
+from dysession.logger import get_logger
 
 from ..settings import get_config
 
@@ -58,7 +59,7 @@ def check_dynamodb_table_exists(table_name: Optional[str] = None, client=None) -
 
     response = client.list_tables()
     if table_name not in response["TableNames"]:
-        raise DynamodbTableNotFound
+        raise DynamodbTableNotFound(table_name)
 
     return response
 
@@ -128,6 +129,8 @@ def insert_session_item(
         table_name = get_config()["DYNAMODB_TABLENAME"]
 
     if not ignore_duplicated and key_exists(data.session_key):
+        logger = get_logger()
+        logger.error(f"'{data.session_key}' is already an item of table '{table_name}'.")
         raise SessionKeyDuplicated
 
     resource = boto3.resource("dynamodb", region_name=get_config()["DYNAMODB_REGION"])
@@ -200,9 +203,13 @@ class DynamoDB:
                     raise SessionExpired
         # if not found then raise
         except DynamodbItemNotFound:
+            logger = get_logger()
+            logger.error(f"'{session_key}' cannot be found on table '{table_name}'.")
             raise SessionKeyDoesNotExist
         # if key is expired
         except SessionExpired:
+            logger = get_logger()
+            logger.error(f"'{session_key}' is expired .")
             raise SessionExpired
 
         return model
@@ -236,7 +243,7 @@ class DynamoDB:
     def delete(self, data: SessionDataModel, table_name: Optional[str] = None) -> bool:
         if data.session_key is None:
             return
-            
+
         try:
             delete_session_item(data=data, table_name=table_name)
         except AssertionError:
