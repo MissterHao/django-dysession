@@ -5,15 +5,10 @@ from django.test import TestCase
 from moto import mock_dynamodb
 from parameterized import parameterized
 
-from dysession.aws.dynamodb import (
-    check_dynamodb_table_exists,
-    create_dynamodb_table,
-    delete_session_item,
-    destory_dynamodb_table,
-    get_item,
-    insert_session_item,
-    key_exists,
-)
+from dysession.aws.dynamodb import (check_dynamodb_table_exists,
+                                    create_dynamodb_table, delete_session_item,
+                                    destory_dynamodb_table, get_item,
+                                    insert_session_item, key_exists)
 from dysession.aws.error import DynamodbItemNotFound, DynamodbTableNotFound
 from dysession.backends.model import SessionDataModel
 from dysession.settings import get_config

@@ -1,8 +1,9 @@
 import logging
+from typing import Dict
 
 from .ansi import ANSIColor
 
-LOGLEVEL_TRANSFORM = {
+LOGLEVEL_TRANSFORM: Dict[int, str] = {
     logging.DEBUG: ANSIColor.DEBUG.value,
     logging.INFO: ANSIColor.OKCYAN.value,
     logging.WARNING: ANSIColor.WARNING.value,

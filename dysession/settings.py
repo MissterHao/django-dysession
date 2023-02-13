@@ -12,6 +12,9 @@ DEFAULT_CONFIG = {
     "TTL_ATTRIBUTE_NAME": "ttl",
     "CACHE_PERIOD": 3600,
     "DYNAMODB_REGION": "ap-northeast-1",
+    "LOGGING": {
+        "TYPE": "CONSOLE",
+    },
 }
 
 
@@ -26,6 +29,9 @@ def get_config() -> Dict[str, Union[str, int]]:
         * TTL_ATTRIBUTE_NAME
         * CACHE_PERIOD
         * DYNAMODB_REGION
+        * LOGGING
+            * TYPE
+            * FILE_PATH
 
     Returns:
         Dict[str, Union[str, int]]

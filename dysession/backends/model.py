@@ -48,12 +48,12 @@ class SessionDataModel:
     def __iter__(self):
         return iter(self.__variables_names)
 
-    def __is_empty(self):
+    def __is_empty(self) -> bool:
         return len(self.__variables_names) == 0
 
     is_empty = property(__is_empty)
 
-    def get(self, key, default=...):
+    def get(self, key, default=...) -> Any:
         try:
             return self[key]
         except AttributeError:
@@ -61,7 +61,7 @@ class SessionDataModel:
                 raise
             return default
 
-    def pop(self, key, default=...):
+    def pop(self, key, default=...) -> Any:
         try:
             ret = self[key]
             del self[key]

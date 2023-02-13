@@ -58,7 +58,7 @@ class SessionStore(SessionBase):
     def key_salt(self):
         return "dysession.backends." + self.__class__.__qualname__
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         "Return True when there is no session_key and the session is empty."
         try:
             return not self._session_key and not self._session_cache.is_empty
@@ -69,10 +69,10 @@ class SessionStore(SessionBase):
         super().clear()
         self._session_cache = SessionDataModel()
 
-    def items(self):
+    def items(self) -> Dict[str, Any]:
         return self._session.items()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._get_session())
 
     # Methods that subclass must implement
@@ -124,7 +124,6 @@ class SessionStore(SessionBase):
         if session_key is None:
             session_key = self._session_key
 
-        
         try:
             self.db.delete(self._get_session())
         except DeleteSessionError:
