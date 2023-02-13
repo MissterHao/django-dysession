@@ -10,6 +10,7 @@ from .handler.colorful_console import ColorfulConsoleLoggerHandler
 
 
 class LoggingType(Enum):
+    """Enum of python logger type."""
 
     PLAINTEXT_CONSOLE = auto()
     COLOR_CONSOLE = auto()

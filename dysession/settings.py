@@ -29,6 +29,9 @@ def get_config() -> Dict[str, Union[str, int]]:
         * TTL_ATTRIBUTE_NAME
         * CACHE_PERIOD
         * DYNAMODB_REGION
+        * LOGGING
+            * TYPE
+            * FILE_PATH
 
     Returns:
         Dict[str, Union[str, int]]
